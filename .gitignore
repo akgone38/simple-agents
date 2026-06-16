@@ -1,0 +1,27 @@
+# Virtual environments in any subdirectory
+**/venv/
+**/.venv/
+**/ENV/
+**/env/
+venv/
+.venv/
+env/
+
+# Environment variables / secrets in any subdirectory
+**/.env
+.env
+
+# Python caches
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Jupyter Notebook checkpoints
+**/.ipynb_checkpoints/
+
+# IDE and OS files
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
