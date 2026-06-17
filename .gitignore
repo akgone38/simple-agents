@@ -25,3 +25,9 @@ env/
 **/.DS_Store
 .idea/
 .vscode/
+
+# SQLite databases and WAL files
+**/*.db
+**/*.db-wal
+**/*.db-shm
+
