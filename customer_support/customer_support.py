@@ -45,17 +45,6 @@ def classify_query(state: BotState) -> dict:
     
     response = chat_model.invoke(messages)
     category = response.content.strip().lower()
-    
-    # Strict validation mapping layer
-    valid_intents = {"faq", "complaint", "technical_support", "escalate"}
-    if category not in valid_intents:
-        # Check substring fallbacks if the LLM added filler words
-        for intent in valid_intents:
-            if intent in category:
-                category = intent
-                break
-        else:
-            category = "escalate"  # Default safety fallback
         
     print(f"[Node: classify_query] -> Intent Classified as: '{category}'")
     return {"type": category}
