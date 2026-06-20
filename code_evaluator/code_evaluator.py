@@ -181,12 +181,11 @@ def build_evaluation_graph(checkpointer):
 # 6. SIMULATION RUNNER (Execution Entrypoint)
 # =====================================================================
 
-def run_evaluation_flow(app, thread_id: str, expression: str, simulated_approval: str):
+def run_evaluation_flow(app, thread_id: str, expression: str):
     """
-    Executes a full evaluation session for a specific thread, input expression,
-    and simulated approval.
-    Shows the pause at the interrupt point, resumption with Command(resume=...),
-    and final state values.
+    Executes a full evaluation session for a specific thread and input expression.
+    Pauses execution at the human_approve interrupt point, requests input from the
+    terminal interactive prompt, and resumes execution.
     """
     config = {"configurable": {"thread_id": thread_id}}
     
@@ -203,13 +202,23 @@ def run_evaluation_flow(app, thread_id: str, expression: str, simulated_approval
     
     # Verify if the graph is currently waiting on an interrupt
     if state_snapshot.next and "human_approve" in state_snapshot.next:
-        print(f"[Interrupt Triggered] Execution paused. Requesting approval...")
-        print(f"Simulating human approval: {simulated_approval}")
+        print("[Interrupt Triggered] Execution paused. Requesting approval...")
+        
+        # Interactively prompt the human inside the terminal
+        user_approval = ""
+        while user_approval not in ["yes", "no"]:
+            try:
+                user_approval = input("Do you approve execution of this expression? (yes/no): ").strip().lower()
+            except (KeyboardInterrupt, EOFError):
+                print("\n\nExecution terminated by user. Exiting...")
+                sys.exit(0)
+            if user_approval not in ["yes", "no"]:
+                print("Please enter 'yes' or 'no'.")
         
         # --- PHASE 2: Resume Execution ---
-        # Resume the graph by passing Command(resume=simulated_approval) to the invoke call.
+        # Resume the graph by passing Command(resume=user_approval) to the invoke call.
         # This supplies the value returned by the interrupt() function inside human_approve.
-        final_state = app.invoke(Command(resume=simulated_approval), config)
+        final_state = app.invoke(Command(resume=user_approval), config)
         
         # Print results of the execution
         print(f"\nResult: {final_state['result']}")
@@ -217,7 +226,7 @@ def run_evaluation_flow(app, thread_id: str, expression: str, simulated_approval
         print("[Error] Graph did not pause at the expected interrupt point.")
 
 def main():
-    # Remove existing database file if it exists to ensure a clean simulation run
+    # Remove existing database file if it exists to ensure a clean run
     if os.path.exists(DB_PATH):
         try:
             os.remove(DB_PATH)
@@ -228,22 +237,33 @@ def main():
     with SqliteSaver.from_conn_string(DB_PATH) as memory:
         app = build_evaluation_graph(memory)
         
-        # Case 1 — Approved
-        run_evaluation_flow(
-            app=app,
-            thread_id="thread_approved",
-            expression="5 * (3 + 2)",
-            simulated_approval="yes"
-        )
+        print("==================================================")
+        print("   Code Evaluation Agent (Interactive HIL Mode)   ")
+        print("==================================================")
+        print("Type your Python expression or use one of these examples:")
+        print("  - Math example: 5 * (3 + 2)")
+        print("  - File write example: open('file.txt', 'w')")
+        print("Type 'exit' to quit the interactive shell.\n")
         
-        # Case 2 — Rejected
-        run_evaluation_flow(
-            app=app,
-            thread_id="thread_rejected",
-            expression="open('file.txt', 'w')",
-            simulated_approval="no"
-        )
-        
+        thread_counter = 1
+        while True:
+            try:
+                expression = input("Enter a Python expression to evaluate: ").strip()
+            except (KeyboardInterrupt, EOFError):
+                print("\nExiting...")
+                break
+                
+            if not expression:
+                continue
+            if expression.lower() == "exit":
+                print("Exiting...")
+                break
+                
+            thread_id = f"interactive_thread_{thread_counter}"
+            run_evaluation_flow(app, thread_id, expression)
+            thread_counter += 1
+            print("-" * 50)
+            
     # Cleanup database file after execution
     if os.path.exists(DB_PATH):
         try:

@@ -268,48 +268,48 @@ HUGGINGFACEHUB_API_TOKEN="your-huggingface-token-here"
 ```
 
 ---
-
 ## 🚀 Execution & Verification
 
-To run the agent and verify the outputs, execute the following command in your terminal:
+To run the agent in the interactive HIL mode, execute the following command in your terminal:
 
 ```bash
 aaditya@Aadityas-MacBook-Air code_evaluator % python3 code_evaluator.py
 ```
 
-### Actual Output
+### Actual Interactive Output
 
 ```text
---- Thread thread_approved: Evaluating '5 * (3 + 2)' ---
+==================================================
+   Code Evaluation Agent (Interactive HIL Mode)   
+==================================================
+Type your Python expression or use one of these examples:
+  - Math example: 5 * (3 + 2)
+  - File write example: open('file.txt', 'w')
+Type 'exit' to quit the interactive shell.
 
-Expression parsed: 5 * (3 + 2)
-Analysis: LLM Prediction: 25. Safety: safe - no potential security or runtime risks.
+Enter a Python expression to evaluate: 3*3*(3-1)
+
+--- Thread interactive_thread_1: Evaluating '3*3*(3-1)' ---
+
+Expression parsed: 3*3*(3-1)
+Analysis: LLM Prediction: 18. Safety: safe - the expression is a valid arithmetic operation without any potential security or runtime risks.
 [Graph Status] Next scheduled node: ('human_approve',)
 [Interrupt Triggered] Execution paused. Requesting approval...
-Simulating human approval: yes
+Do you approve execution of this expression? (yes/no): yes
 
 Human approved execution.
 
-Result: 25
+Result: 18
+--------------------------------------------------
+Enter a Python expression to evaluate: end
 
---- Thread thread_rejected: Evaluating 'open('file.txt', 'w')' ---
+--- Thread interactive_thread_2: Evaluating 'end' ---
 
-Expression parsed: open('file.txt', 'w')
-Analysis: LLM Prediction: None (since the expression is not a statement that returns a value). Safety: unsafe - the expression opens a file for writing, which could potentially overwrite existing data or lead to security vulnerabilities if not handled properly.
+Expression parsed: end
+Analysis: LLM Prediction: None (the expression is not a valid Python statement). Safety: safe - it's just a variable name, no potential security or runtime risks.
 [Graph Status] Next scheduled node: ('human_approve',)
 [Interrupt Triggered] Execution paused. Requesting approval...
-Simulating human approval: no
+Do you approve execution of this expression? (yes/no): ^C
 
-Human rejected execution.
-
-Result: Execution skipped.
+Execution terminated by user. Exiting...
 ```
-
----
-
-## 📄 File Directory Structure
-
-* [requirements.txt](file:///Users/aaditya/Desktop/simple-agents/code_evaluator/requirements.txt) — Project packages (LangGraph, LangChain, python-dotenv).
-* [.env](file:///Users/aaditya/Desktop/simple-agents/code_evaluator/.env) — Authentication credentials.
-* [code_evaluator.py](file:///Users/aaditya/Desktop/simple-agents/code_evaluator/code_evaluator.py) — Core Python script with StateGraph logic.
-* [README.md](file:///Users/aaditya/Desktop/simple-agents/code_evaluator/README.md) — Documentation (this file).
